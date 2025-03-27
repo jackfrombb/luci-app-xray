@@ -46,7 +46,8 @@ jobs:
             openwrt-${{ matrix.arch }}-${{ env.PACKAGE_NAME }}-
       - name: Install Dependencies
         run: |
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ccache gettext libncurses5-dev xsltproc p7zip-full
+          DEBIAN_FRONTEND=noninteractive sudo apt-get update -y
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --fix-missing ccache gettext libncurses5-dev xsltproc p7zip-full build-essential libssl-dev python3
       - name: Create Directories
         run: |
           CACHE_DIR_SDK="$(eval echo "$CACHE_DIR/sdk")"
