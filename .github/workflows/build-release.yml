@@ -106,14 +106,31 @@ jobs:
           make package/${PACKAGE_NAME}/status/{clean,compile} V=s
           find "$SDK_HOME/bin/" -type f -name "*.ipk" -exec ls -lh {} \;
           cd -
+
+      - name: Get or create tag
+        id: tag
+        run: |
+          if git describe --tags --exact-match >/dev/null 2>&1; then
+            echo "tag=$(git describe --tags --exact-match)" >> $GITHUB_OUTPUT
+          else
+            LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+            NEW_TAG=$(echo $LATEST_TAG | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
+            git tag $NEW_TAG
+            git push origin $NEW_TAG
+            echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Copy Bin Files
         run: |
           find "$SDK_HOME/bin/" -type f -name "${PACKAGE_NAME}*.ipk" -exec cp {} "${{ github.workspace }}" \;
           find "${{ github.workspace }}" -type f -name "*.ipk" -exec ls -lh {} \;
       - name: Release and Upload Assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: "*.ipk"
+          tag_name: ${{ steps.tag.outputs.tag }}
+          update: true
+          
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
